@@ -16,7 +16,48 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
+
+
+from notes.views import (
+    LogoutAPIView, NoteList, NoteDetail, CategoryList, CategoryDetail,
+    SignupAPIView, LoginAPIView
+)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Authentication URLs (login/logout)
+    #path('login/', auth_views.LoginView.as_view(template_name='notes/login.html'), name='login'),
+    #path('logout/', auth_views.LogoutView.as_view(next_page='login'),name='logout'),
+    
+    
+    # Sign-up and activation handled in notes app
+    #path('signup/', note_views.signup, name='signup'),
+    #path('activate/<uidb64>/<token>/', note_views.activate, name='activate'),
+    
+    
+    # Frontend note views
+    #path('', note_views.dashboard, name='dashboard'),
+    #path('notes/new/', note_views.note_create, name='note-create'),
+    #path('notes/<int:pk>/', note_views.note_detail, name='note-detail'),
+    #path('notes/<int:pk>/edit/', note_views.note_edit, name='note-edit'),
+    #path('notes/<int:pk>/delete/', note_views.note_delete, name='note-delete'),
+    
+    
+    # REST API endpoints
+    path('api/auth/signup/', SignupAPIView.as_view(), name='api-signup'),
+    path('api/auth/login/', LoginAPIView.as_view(), name='api-login'),
+    path('api/notes/', NoteList.as_view(), name='api-note-list'),
+    path('api/notes/<int:pk>/', NoteDetail.as_view(), name='api-note-detail'),
+    path('api/categories/', CategoryList.as_view(), name='api-cat-list'),
+    path('api/categories/<int:pk>/', CategoryDetail.as_view(), name='api-catdetail'),
+    #path('api/auth/activate/<uidb64>/<token>/', ActivateAccountAPIView.as_view(), name='activate'),
+    path('api/auth/logout/', LogoutAPIView.as_view(), name='api-logout'),
+    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
+
+    
+    
+    
 ]
