@@ -1,7 +1,8 @@
+from urllib import request
 from rest_framework import generics, permissions, filters,status
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Note, Category
-from .serializers import NoteSerializer, CategorySerializer, SignupSerializer, LoginSerializer
+from .serializers import NoteCreateSerializer, NoteSerializer, CategorySerializer, SignupSerializer, LoginSerializer
 
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -43,6 +44,24 @@ class NoteList(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         # Assign the note's owner to the logged-in user
         serializer.save(owner=self.request.user)
+        
+        
+class NoteListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        notes = Note.objects.filter(owner=request.user).order_by("-created_at")
+        serializer = NoteCreateSerializer(notes, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = NoteCreateSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(owner=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class NoteDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = NoteSerializer
@@ -52,15 +71,24 @@ class NoteDetail(generics.RetrieveUpdateDestroyAPIView):
         # Ensures users can only access their own note
         return Note.objects.filter(owner=self.request.user)
     
-class CategoryList(generics.ListCreateAPIView):
-    serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_queryset(self):
-        return Category.objects.filter(owner=self.request.user)
+class CategoryList(APIView):
+    permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+    def get(self, request):
+        # Fetch ALL categories from the database so the user can pick any
+        categories = Category.objects.all() 
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        name = request.data.get('name', '').strip()
+        # Logic: If it exists, return it. If not, create it.
+        category, created = Category.objects.get_or_create(
+            name=name,
+            defaults={'owner': request.user}
+        )
+        serializer = CategorySerializer(category)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 class CategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()

@@ -17,7 +17,26 @@ class NoteSerializer(serializers.ModelSerializer):
         fields = ['id','title','content','owner','category','created_at','updated_at']
         read_only_fields = ['owner','created_at','updated_at']
         
+class NoteCreateSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        many=True,
+        required=False
+    )
+    category_names = serializers.StringRelatedField(source='category', many=True, read_only=True)
 
+    class Meta:
+        model = Note
+        fields = ["id", "title", "content", "category","category_names", "created_at"]
+
+    def create(self, validated_data):
+        categories = validated_data.pop("category", [])
+        note = Note.objects.create(**validated_data)
+        note.category.set(categories)
+        return note
+    
+
+    
 # ---------------------------
 # Signup / Login Serializers
 # ---------------------------
