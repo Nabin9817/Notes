@@ -6,40 +6,55 @@ from django.contrib.auth import authenticate
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category 
-        fields = ['id','name']
-        
+        fields = ['id', 'name']
+
 class NoteSerializer(serializers.ModelSerializer):
+    """ Used for GET requests: Displays full data including category names """
     owner = serializers.ReadOnlyField(source='owner.username')
-    category = serializers.PrimaryKeyRelatedField(many = True, queryset = Category.objects.all())
+    category_names = serializers.SlugRelatedField(
+        many=True, 
+        read_only=True, 
+        slug_field='name', 
+        source='category'
+    )
     
     class Meta:
         model = Note 
-        fields = ['id','title','content','owner','category','created_at','updated_at']
-        read_only_fields = ['owner','created_at','updated_at']
-        
+        fields = [
+            'id', 'title', 'content', 'owner', 
+            'category', 'category_names', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['owner', 'created_at', 'updated_at']
+
 class NoteCreateSerializer(serializers.ModelSerializer):
+    """ Used for POST/PUT requests: Handles IDs for category assignment """
     category = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(),
         many=True,
         required=False
     )
-    category_names = serializers.StringRelatedField(source='category', many=True, read_only=True)
 
     class Meta:
         model = Note
-        fields = ["id", "title", "content", "category","category_names", "created_at"]
+        fields = ["id", "title", "content", "category", "created_at"]
 
     def create(self, validated_data):
         categories = validated_data.pop("category", [])
         note = Note.objects.create(**validated_data)
         note.category.set(categories)
         return note
-    
 
-    
-# ---------------------------
-# Signup / Login Serializers
-# ---------------------------
+    def update(self, instance, validated_data):
+        categories = validated_data.pop("category", None)
+        instance.title = validated_data.get('title', instance.title)
+        instance.content = validated_data.get('content', instance.content)
+        instance.save()
+        if categories is not None:
+            instance.category.set(categories)
+        return instance
+
+# --- AUTH SERIALIZERS ---
+
 class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -48,14 +63,11 @@ class SignupSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'password']
 
     def create(self, validated_data):
-        user = User.objects.create_user(
+        return User.objects.create_user(
             username=validated_data['email'],
             email=validated_data['email'],
-            password=validated_data['password'],
-            is_active=False  # inactive until email activation
+            password=validated_data['password']
         )
-        return user
-
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()

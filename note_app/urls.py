@@ -20,26 +20,31 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 
 from notes.views import (
-    LogoutAPIView, NoteList, NoteDetail, CategoryList, CategoryDetail,
-    SignupAPIView, LoginAPIView, NoteListCreateView
+    LogoutAPIView,SignupAPIView, LoginAPIView,
+    NoteListCreateView, NoteDetailView,CategoryListCreateView, CategoryDetailView
 )
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # REST API endpoints
-    path('api/auth/signup/', SignupAPIView.as_view(), name='api-signup'),
-    path('api/auth/login/', LoginAPIView.as_view(), name='api-login'),
-    path('api/createnote/', NoteListCreateView.as_view(),name ='create-note'),
-    #path('api/notes/', NoteList.as_view(), name='api-note-list'),
-    path('api/notes/<int:pk>/', NoteDetail.as_view(), name='api-note-detail'),
-    path('api/categories/', CategoryList.as_view(), name='api-cat-list'),
-    path('api/categories/<int:pk>/', CategoryDetail.as_view(), name='api-catdetail'),
-    #path('api/auth/activate/<uidb64>/<token>/', ActivateAccountAPIView.as_view(), name='activate'),
-    path('api/auth/logout/', LogoutAPIView.as_view(), name='api-logout'),
-    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
+    # --- AUTHENTICATION ---
+    # User Registration & Login
+    path('api/register/', SignupAPIView.as_view(), name='register'),
+    path('api/login/', LoginAPIView.as_view(), name='login'),
+    path('api/logout/', LogoutAPIView.as_view(), name='logout'),
+    # JWT Token Refresh (used to get a new access token when old one expires)
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-    
-    
-    
+    # --- NOTES ---
+    # List all notes (Search/Sort) and Create a new note
+    path('api/notes/', NoteListCreateView.as_view(), name='note-list-create'),
+    # Retrieve, Update, or Delete a specific note by ID
+    path('api/notes/<int:pk>/', NoteDetailView.as_view(), name='note-detail'),
+
+    # --- CATEGORIES ---
+    # List all categories and Create a new one
+    path('api/categories/', CategoryListCreateView.as_view(), name='category-list-create'),
+    # Retrieve, Update, or Delete a specific category by ID
+    path('api/categories/<int:pk>/', CategoryDetailView.as_view(), name='category-detail'),  
 ]
