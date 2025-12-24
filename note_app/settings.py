@@ -70,11 +70,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'notes',
-    'rest_framework',
     'django_filters',
-    'drf_yasg',
+    'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
     
 ]
 
@@ -161,6 +162,7 @@ AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema', # Link spectacular to DRF
     'DEFAULT_PAGINATION_CLASS':'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5,
     'DEFAULT_FILTER_BACKENDS':['django_filters.rest_framework.DjangoFilterBackend'],
@@ -168,3 +170,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated']
 }
 
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Note Taking API',
+    'DESCRIPTION': 'API for creating and managing categories and notes with JWT Auth',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',  # Use the local sidecar assets
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    # This allows the "Authorize" button to appear for JWT
+    'COMPONENT_SPLIT_PATCH': True,
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,
+    },
+}

@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 from notes.views import (
@@ -47,4 +48,10 @@ urlpatterns = [
     path('api/categories/', CategoryListCreateView.as_view(), name='category-list-create'),
     # Retrieve, Update, or Delete a specific category by ID
     path('api/categories/<int:pk>/', CategoryDetailView.as_view(), name='category-detail'),  
+    
+    # 1. The Schema (downloads the JSON/YAML)
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    
+    # 2. The UI (View documentation in browser)
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
