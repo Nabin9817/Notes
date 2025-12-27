@@ -67,3 +67,11 @@ Documentation: drf-spectacular (Swagger/OpenAPI 3.0)
 📖 API Documentation
     Swagger UI: http://localhost:8000/api/docs/
 
+🧪 Testing
+The backend uses Django Rest Framework's APITestCase to ensure data integrity, security, and API reliability.
+
+To run the entire test suite, use the following command in your terminal:
+    python manage.py test
+
+
+
